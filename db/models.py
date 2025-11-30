@@ -24,8 +24,14 @@ class Actor(models.Model):
 class Movie(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    actors = models.ManyToManyField(to=Actor, related_name="movies")
-    genres = models.ManyToManyField(to=Genre, related_name="movies")
+    actors = models.ManyToManyField(
+        to=Actor,
+        related_name="movies"
+    )
+    genres = models.ManyToManyField(
+        to=Genre,
+        related_name="movies"
+    )
 
     class Meta:
         indexes = [
@@ -54,19 +60,16 @@ class MovieSession(models.Model):
     cinema_hall = models.ForeignKey(
         to=CinemaHall,
         on_delete=models.CASCADE,
-        related_name="movie_sessions",
+        related_name="movie_sessions"
     )
     movie = models.ForeignKey(
         to=Movie,
         on_delete=models.CASCADE,
-        related_name="movie_sessions",
+        related_name="movie_sessions"
     )
 
     def __str__(self) -> str:
-        return (
-            f"{self.movie.title} "
-            f"{self.show_time}"
-        )
+        return f"{self.movie.title} {self.show_time}"
 
 
 class Order(models.Model):
@@ -74,7 +77,7 @@ class Order(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="orders",
+        related_name="orders"
     )
 
     class Meta:
@@ -88,9 +91,12 @@ class Order(models.Model):
 class Ticket(models.Model):
     movie_session = models.ForeignKey(
         "MovieSession",
-        on_delete=models.CASCADE,
+        on_delete=models.CASCADE
     )
-    order = models.ForeignKey("Order", on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE
+    )
     row = models.IntegerField()
     seat = models.IntegerField()
 
@@ -117,15 +123,15 @@ class Ticket(models.Model):
                 ]
             })
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         self.full_clean()
-        return super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     class Meta:
         constraints = [
             UniqueConstraint(
                 fields=["row", "seat", "movie_session"],
-                name="unique_ticket",
+                name="unique_ticket"
             )
         ]
 
