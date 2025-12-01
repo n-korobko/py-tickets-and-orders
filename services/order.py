@@ -19,7 +19,9 @@ def create_order(
     user = user_model.objects.get(username=username)
 
     if date:
-        created_at = datetime.strptime(date, "%Y-%m-%d %H:%M").replace(microsecond=0)
+        created_at = datetime.strptime(
+            date,
+            "%Y-%m-%d %H:%M").replace(microsecond=0)
     else:
         created_at = timezone.now().replace(microsecond=0)
 
@@ -30,7 +32,9 @@ def create_order(
 
     for ticket_data in tickets:
         Ticket.objects.create(
-            movie_session=MovieSession.objects.get(id=ticket_data["movie_session"]),
+            movie_session=MovieSession.objects.get(
+                id=ticket_data["movie_session"]
+            ),
             row=ticket_data["row"],
             seat=ticket_data["seat"],
             order=order,
