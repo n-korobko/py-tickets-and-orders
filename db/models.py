@@ -3,7 +3,6 @@ from django.db import models
 from django.db.models import UniqueConstraint
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from django.utils import timezone
 
 
 class Genre(models.Model):
@@ -69,7 +68,7 @@ class MovieSession(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"<Order: {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}>"
+        return f"{self.movie.title} {self.show_time}"
 
 
 class Order(models.Model):
