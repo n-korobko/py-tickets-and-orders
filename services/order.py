@@ -4,7 +4,8 @@ from datetime import datetime
 from django.db import transaction
 from django.utils import timezone
 
-from db.models import Order, Ticket, User
+from django.contrib.auth import get_user_model
+from db.models import Order, Ticket
 from django.db.models import QuerySet
 
 
@@ -12,10 +13,10 @@ from django.db.models import QuerySet
 def create_order(
     tickets: List[Dict[str, int]],
     username: str,
-    date: Optional[str] = None
+    date: Optional[str] = None,
 ) -> Order:
-
-    user = User.objects.get(username=username)
+    user_model = get_user_model()
+    user = user_model.objects.get(username=username)
 
     if date:
         created_at = datetime.strptime(date, "%Y-%m-%d %H:%M")
