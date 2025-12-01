@@ -1,13 +1,15 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import UniqueConstraint
-from django.core.exceptions import ValidationError
-from django.conf import settings
-from django.utils import timezone
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(
+        max_length=255,
+        unique=True,
+    )
 
     def __str__(self) -> str:
         return self.name
@@ -25,12 +27,12 @@ class Movie(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     actors = models.ManyToManyField(
-        to=Actor,
-        related_name="movies"
+        to="Actor",
+        related_name="movies",
     )
     genres = models.ManyToManyField(
-        to=Genre,
-        related_name="movies"
+        to="Genre",
+        related_name="movies",
     )
 
     class Meta:
@@ -60,12 +62,12 @@ class MovieSession(models.Model):
     cinema_hall = models.ForeignKey(
         to=CinemaHall,
         on_delete=models.CASCADE,
-        related_name="movie_sessions"
+        related_name="movie_sessions",
     )
     movie = models.ForeignKey(
         to=Movie,
         on_delete=models.CASCADE,
-        related_name="movie_sessions"
+        related_name="movie_sessions",
     )
 
     def __str__(self) -> str:
@@ -73,35 +75,50 @@ class MovieSession(models.Model):
 
 
 class Order(models.Model):
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="orders"
+        related_name="orders",
     )
 
     class Meta:
-        db_table = "db_order"
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        return str(self.created_at)
+        # Тести очікують тільки дату-час без "<Order: ...>"
+        return self.created_at.strftime("%Y-%m-%d %H:%M:%S")
 
 
 class Ticket(models.Model):
     movie_session = models.ForeignKey(
         "MovieSession",
         on_delete=models.CASCADE,
-        related_name="tickets"
+        related_name="tickets",
     )
     order = models.ForeignKey(
         "Order",
         on_delete=models.CASCADE,
-        related_name="tickets"
-
+        related_name="tickets",
     )
     row = models.IntegerField()
     seat = models.IntegerField()
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["movie_session", "row", "seat"],
+                name="unique_place_on_movie_session",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        # Тести очікують: "Matrix 2019-08-19 20:30:00 (row: 7, seat: 10)"
+        return (
+            f"{self.movie_session.movie.title} "
+            f"{self.movie_session.show_time.strftime('%Y-%m-%d %H:%M:%S')} "
+            f"(row: {self.row}, seat: {self.seat})"
+        )
 
     def clean(self) -> None:
         hall = self.movie_session.cinema_hall
@@ -129,21 +146,6 @@ class Ticket(models.Model):
     def save(self, *args, **kwargs) -> None:
         self.full_clean()
         super().save(*args, **kwargs)
-
-    class Meta:
-        constraints = [
-            UniqueConstraint(
-                fields=["row", "seat", "movie_session"],
-                name="unique_ticket"
-            )
-        ]
-
-    def __str__(self) -> str:
-        return (
-            f"{self.movie_session.movie.title} "
-            f"{self.movie_session.show_time} "
-            f"(row: {self.row}, seat: {self.seat})"
-        )
 
 
 class User(AbstractUser):

@@ -1,30 +1,26 @@
 from typing import Optional
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractBaseUser
+from db.models import User
 
 
 def create_user(
     username: str,
     password: str,
-    email: Optional[str] = None,
-    first_name: Optional[str] = None,
-    last_name: Optional[str] = None,
-) -> AbstractBaseUser:
-    user_model = get_user_model()
-
-    user = user_model.objects.create_user(
+    email: Optional[str] = "",
+    first_name: Optional[str] = "",
+    last_name: Optional[str] = "",
+) -> None:
+    get_user_model().objects.create_user(
         username=username,
         password=password,
         email=email or "",
         first_name=first_name or "",
         last_name=last_name or "",
     )
-    return user
 
 
-def get_user(user_id: int) -> AbstractBaseUser:
-    user_model = get_user_model()
-    return user_model.objects.get(id=user_id)
+def get_user(user_id: int) -> User:
+    return get_user_model().objects.get(pk=user_id)
 
 
 def update_user(
@@ -34,19 +30,18 @@ def update_user(
     email: Optional[str] = None,
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
-) -> AbstractBaseUser:
+) -> None:
     user = get_user(user_id)
 
     if username:
         user.username = username
-    if email:
-        user.email = email
-    if first_name:
-        user.first_name = first_name
-    if last_name:
-        user.last_name = last_name
     if password:
         user.set_password(password)
+    if email is not None:
+        user.email = email or ""
+    if first_name is not None:
+        user.first_name = first_name or ""
+    if last_name is not None:
+        user.last_name = last_name or ""
 
     user.save()
-    return user
