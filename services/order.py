@@ -21,7 +21,7 @@ def create_order(
     if date:
         created_at = datetime.strptime(date, "%Y-%m-%d %H:%M")
     else:
-        created_at = timezone.now()
+        created_at = timezone.now().replace(microsecond=0)
 
     order = Order.objects.create(
         user=user,
